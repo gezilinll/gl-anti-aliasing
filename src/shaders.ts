@@ -1,0 +1,13 @@
+export const defaultVS = `
+precision highp float;
+attribute vec2 position;
+attribute vec2 textureUV;
+
+varying vec2 textureCoordinate;
+
+void main()
+{
+    gl_Position = vec4(position.xy, 0.0, 1.0);
+    textureCoordinate = textureUV;
+}
+`;
