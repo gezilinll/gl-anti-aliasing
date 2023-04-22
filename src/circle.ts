@@ -48,23 +48,20 @@ export class Circle {
         gl.viewport((canvasWidth - size) / 2, (canvasHeight - size) / 2, size, size);
 
         gl.useProgram(this._program!.glHandle);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertex!.glHandle);
-        const positionAttributeLocation = this._program!.getAttribLocation('position');
-        gl.enableVertexAttribArray(positionAttributeLocation);
-        gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 2 * 4, 0);
+        this._vertex!.vertexAttribPointer(this._program!.getAttribLocation('position'), 2 * 4, 0);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        gl.disableVertexAttribArray(positionAttributeLocation);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        this._vertex?.disableVertexAttribPointers();
+
         gl.useProgram(null);
 
         gl.viewport(0, 0, canvasWidth, canvasHeight)
     }
 
     destroy() {
-        this._program.destroy();
-        this._vertex.destroy();
+        this._program?.destroy();
+        this._vertex?.destroy();
 
         this._program = null;
         this._vertex = null;
