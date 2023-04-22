@@ -19,11 +19,12 @@ function getGLContext(canvas: HTMLCanvasElement) {
 
 let setStyleWidth = 0;
 let setStyleHeight = 0;
+let faxxEnabled = false;
 
 function resizeCanvas() {
   const ratio = window.devicePixelRatio;
-  const width = window.innerWidth;
-  const height = window.innerHeight;
+  const width = window.innerWidth - 100;
+  const height = window.innerHeight - 100;
   const bufferWidth = Math.ceil(width * ratio);
   const bufferHeight = Math.ceil(height * ratio);
   if (
@@ -78,10 +79,14 @@ function render() {
   circleRenderer.render(canvas.width, canvas.height);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-  // renderTexture(fCircle.texture!.glHandle!);
 
-  const fxaa = new FAXX(gl);
-  fxaa.render(fCircle.texture!.glHandle!, canvas.width, canvas.height);
+  if (faxxEnabled) {
+    const fxaa = new FAXX(gl);
+    fxaa.render(fCircle.texture!.glHandle!, canvas.width, canvas.height);
+    fxaa.destroy();
+  } else {
+    renderTexture(fCircle.texture!.glHandle!);
+  }
 
   circleRenderer.destroy();
 }
@@ -91,4 +96,7 @@ resizeCanvas();
 
 window.addEventListener('resize', resizeCanvas);
 
-
+document.querySelector('#faxx')!.addEventListener('change', () => {
+  faxxEnabled = document.querySelector('#faxx')!.checked;
+  render();
+});

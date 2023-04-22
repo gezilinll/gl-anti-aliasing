@@ -134,5 +134,13 @@ export class FAXX {
         this._vertex!.disableVertexAttribPointers();
         gl.useProgram(null);
     }
+
+    destroy() {
+        this._program?.destroy();
+        this._vertex?.destroy();
+
+        this._program = null;
+        this._vertex = null;
+    }
 }
 
