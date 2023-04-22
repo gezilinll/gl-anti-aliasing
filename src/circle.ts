@@ -34,8 +34,8 @@ void main()
 export class Circle {
     private readonly VERTEX = [-1, -1, 1, -1, -1, 1, 1, 1];
 
-    private _program: Program;
-    private _vertex: Vertex;
+    private _program: Program | null;
+    private _vertex: Vertex | null;
 
     constructor(private _gl: WebGLRenderingContextBase & WebGLRenderingContextOverloads) {
         this._program = new Program(circleVS, circleFS, this._gl);
@@ -47,18 +47,26 @@ export class Circle {
         const size = Math.min(canvasWidth, canvasHeight);
         gl.viewport((canvasWidth - size) / 2, (canvasHeight - size) / 2, size, size);
 
-        this._program.use();
-        this._vertex.bind();
-        const positionAttributeLocation = this._program.getAttribLocation('position');
+        gl.useProgram(this._program!.glHandle);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertex!.glHandle);
+        const positionAttributeLocation = this._program!.getAttribLocation('position');
         gl.enableVertexAttribArray(positionAttributeLocation);
         gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 2 * 4, 0);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         gl.disableVertexAttribArray(positionAttributeLocation);
-        this._vertex.unbind();
-        this._program.unuse();
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.useProgram(null);
 
         gl.viewport(0, 0, canvasWidth, canvasHeight)
+    }
+
+    destroy() {
+        this._program.destroy();
+        this._vertex.destroy();
+
+        this._program = null;
+        this._vertex = null;
     }
 }

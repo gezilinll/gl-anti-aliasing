@@ -1,7 +1,7 @@
 export class Program {
     private _vertexShader: WebGLShader | null;
     private _fragmentShader: WebGLShader | null;
-    private _program: WebGLProgram | null;
+    glHandle: WebGLProgram | null;
     private _uniformLocations = new Map<string, WebGLUniformLocation>();
     private _attribLocations: { [name: string]: number } = {};
 
@@ -10,7 +10,7 @@ export class Program {
         private _gl: WebGLRenderingContextBase & WebGLRenderingContextOverloads) {
         this._vertexShader = this._createShader(this._gl.VERTEX_SHADER, vertexShaderSource);
         this._fragmentShader = this._createShader(this._gl.FRAGMENT_SHADER, fragmentShaderSource);
-        this._program = this._createProgram();
+        this.glHandle = this._createProgram();
     }
 
     private _createShader(type: number, source: string): WebGLShader {
@@ -64,7 +64,7 @@ export class Program {
         }
         const gl = this._gl;
 
-        const location = gl.getAttribLocation(this._program!, name);
+        const location = gl.getAttribLocation(this.glHandle!, name);
         if (location === -1) {
             throw new Error(`Failed to get attribute location for ${name}`);
         }
@@ -81,13 +81,79 @@ export class Program {
         return this._uniformLocations.get(name)!;
     }
 
-    use(): void {
+    public setUniform(
+        name: string | number,
+        value: number | Float32List | Int32List | Uint32List | boolean,
+    ): void {
         const gl = this._gl;
-        gl.useProgram(this._program);
+        const location = typeof name === 'number' ? name : this._uniformLocations.get(name);
+        if (location === undefined) {
+            console.error(`Failed to get uniform location for ${name}`);
+            return;
+        }
+        if (typeof value === 'number') {
+            if (Number.isInteger(value)) {
+                gl.uniform1i(location, value);
+            } else {
+                gl.uniform1f(location, value);
+            }
+        } else if (typeof value === 'boolean') {
+        } else if (value instanceof Float32Array || Array.isArray(value)) {
+            const length = value.length;
+            switch (length) {
+                case 1:
+                    gl.uniform1fv(location, value);
+                    break;
+                case 2:
+                    gl.uniform2fv(location, value);
+                    break;
+                case 3:
+                    gl.uniform3fv(location, value);
+                    break;
+                case 4:
+                    gl.uniform4fv(location, value);
+                    break;
+                case 9:
+                    gl.uniformMatrix3fv(location, false, value);
+                    break;
+                case 16:
+                    gl.uniformMatrix4fv(location, false, value);
+                    break;
+                default:
+                    throw new Error('Unsupported uniform value');
+            }
+        } else if (value instanceof Int32Array || value instanceof Uint32Array) {
+            const length = value.length;
+            switch (length) {
+                case 1:
+                    gl.uniform1iv(location, value);
+                    break;
+                case 2:
+                    gl.uniform2iv(location, value);
+                    break;
+                case 3:
+                    gl.uniform3iv(location, value);
+                    break;
+                case 4:
+                    gl.uniform4iv(location, value);
+                    break;
+                default:
+                    throw new Error('Unsupported uniform value');
+            }
+        } else {
+            throw new TypeError('Unsupported uniform value');
+        }
     }
 
-    unuse() {
+    destroy() {
         const gl = this._gl;
-        gl.useProgram(null);
+
+        gl.deleteProgram(this.glHandle);
+        gl.deleteShader(this._vertexShader);
+        gl.deleteShader(this._fragmentShader);
+
+        this.glHandle = null;
+        this._vertexShader = null;
+        this._fragmentShader = null;
     }
 }
