@@ -42,10 +42,8 @@ export class Circle {
         this._vertex = new Vertex(this.VERTEX, this._gl);
     }
 
-    render(canvasWidth: number, canvasHeight: number) {
+    render() {
         const gl = this._gl;
-        const size = Math.min(canvasWidth, canvasHeight);
-        gl.viewport((canvasWidth - size) / 2, (canvasHeight - size) / 2, size, size);
 
         gl.useProgram(this._program!.glHandle);
         this._vertex!.vertexAttribPointer(this._program!.getAttribLocation('position'), 2 * 4, 0);
@@ -55,8 +53,6 @@ export class Circle {
         this._vertex?.disableVertexAttribPointers();
 
         gl.useProgram(null);
-
-        gl.viewport(0, 0, canvasWidth, canvasHeight)
     }
 
     destroy() {
