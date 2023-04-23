@@ -2,6 +2,7 @@ import { Circle } from "./circle";
 import { FAXX } from "./faxx";
 import { Framebuffer } from "./framebuffer";
 import { Photo } from "./image";
+import { MSAAFrameBuffer } from "./msaa";
 import { Program } from "./program";
 import { defaultFS, defaultVS } from "./shaders";
 import { Triangle } from "./triangle";
@@ -23,7 +24,7 @@ function getCanvas() {
 }
 
 function getGLContext(canvas: HTMLCanvasElement) {
-  const gl = canvas.getContext("webgl2");
+  const gl = canvas.getContext("webgl2", { antialias: true });
   if (gl == null) throw new Error("WebGL not supported");
   return gl;
 }
@@ -33,6 +34,7 @@ let setStyleHeight = 0;
 let drawType = 'Circle';
 let image: HTMLImageElement | null = null;
 let fxaaEnabled = false;
+let msaaEnabled = false;
 
 function resizeCanvas() {
   const ratio = window.devicePixelRatio;
@@ -89,7 +91,9 @@ function render() {
   }
 
   let gl = getGLContext(canvas);
-  const screen = new Framebuffer(canvas.width, canvas.height, gl);
+  const screen =
+    msaaEnabled ? new MSAAFrameBuffer(canvas.width, canvas.height, gl)
+      : new Framebuffer(canvas.width, canvas.height, gl);
   gl.bindFramebuffer(gl.FRAMEBUFFER, screen.glHandle);
   gl.clearColor(1.0, 1.0, 1.0, 0.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -146,6 +150,10 @@ document.querySelector('#triangle')!.addEventListener('click', () => {
 
 document.querySelector('#fxaa')!.addEventListener('change', () => {
   fxaaEnabled = document.querySelector('#fxaa')!.checked;
+  render();
+});
+document.querySelector('#msaa')!.addEventListener('change', () => {
+  msaaEnabled = document.querySelector('#msaa')!.checked;
   render();
 });
 
