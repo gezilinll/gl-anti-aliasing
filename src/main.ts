@@ -4,6 +4,7 @@ import { Framebuffer } from "./framebuffer";
 import { Photo } from "./image";
 import { Program } from "./program";
 import { defaultFS, defaultVS } from "./shaders";
+import { Triangle } from "./triangle";
 import { Vertex } from "./vertex";
 
 function loadImage(url: string, onload: (img: HTMLImageElement) => void) {
@@ -103,6 +104,10 @@ function render() {
     const imageRenderer = new Photo(image, gl);
     imageRenderer.render();
     imageRenderer.destroy();
+  } else {
+    const triangleRenderer = new Triangle(gl);
+    triangleRenderer.render();
+    triangleRenderer.destroy();
   }
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -131,6 +136,10 @@ document.querySelector('#circle')!.addEventListener('click', () => {
 });
 document.querySelector('#image')!.addEventListener('click', () => {
   drawType = 'Image';
+  render();
+});
+document.querySelector('#triangle')!.addEventListener('click', () => {
+  drawType = 'Triangle';
   render();
 });
 
