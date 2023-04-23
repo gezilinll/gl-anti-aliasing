@@ -35,11 +35,13 @@ let drawType = 'Circle';
 let image: HTMLImageElement | null = null;
 let fxaaEnabled = false;
 let msaaEnabled = false;
+let coverageAlpha = false;
+let coverageBlend = false;
 
 function resizeCanvas() {
   const ratio = window.devicePixelRatio;
-  const width = window.innerWidth - 100;
-  const height = window.innerHeight - 100;
+  const width = window.innerWidth - 100 * ratio;
+  const height = window.innerHeight - 100 * ratio;
   const bufferWidth = Math.ceil(width * ratio);
   const bufferHeight = Math.ceil(height * ratio);
   if (
@@ -85,6 +87,31 @@ function renderTexture(texture: WebGLTexture) {
   program.destroy();
 }
 
+function configureAlphaForCoverage() {
+  let gl = getGLContext(canvas);
+  if (coverageAlpha) {
+    gl.clearColor(1.0, 1.0, 1.0, 1.0);
+  } else {
+    gl.clearColor(1.0, 1.0, 1.0, 0.0);
+  }
+  gl.clear(gl.COLOR_BUFFER_BIT);
+}
+
+function configureBlendForCoverage() {
+  let gl = getGLContext(canvas);
+  if (coverageBlend) {
+    gl.enable(gl.BLEND);
+    // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    // gl.enable(gl.SAMPLE_COVERAGE);
+    // gl.sampleCoverage(1.0, false);
+    // gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+
+    // gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
+
+  }
+}
+
 function render() {
   if (!image) {
     return;
@@ -95,10 +122,13 @@ function render() {
     msaaEnabled ? new MSAAFrameBuffer(canvas.width, canvas.height, gl)
       : new Framebuffer(canvas.width, canvas.height, gl);
   gl.bindFramebuffer(gl.FRAMEBUFFER, screen.glHandle);
-  gl.clearColor(1.0, 1.0, 1.0, 0.0);
-  gl.clear(gl.COLOR_BUFFER_BIT);
-  const size = Math.min(setStyleWidth, setStyleHeight);
-  gl.viewport((setStyleWidth - size) / 2, (setStyleHeight - size) / 2, size, size);
+
+  configureBlendForCoverage();
+
+  configureAlphaForCoverage();
+
+  const size = Math.min(canvas.width, canvas.height);
+  gl.viewport((canvas.width - size) / 2, (canvas.height - size) / 2, size, size);
 
   if (drawType === 'Circle') {
     const circleRenderer = new Circle(gl);
@@ -115,7 +145,7 @@ function render() {
   }
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.viewport(0, 0, setStyleWidth, setStyleHeight);
+  gl.viewport(0, 0, canvas.width, canvas.height);
 
   if (fxaaEnabled) {
     let gl = getGLContext(canvas);
@@ -147,13 +177,45 @@ document.querySelector('#triangle')!.addEventListener('click', () => {
   render();
 });
 
+document.querySelector('#cNone')!.addEventListener('click', () => {
+  coverageAlpha = false;
+  coverageBlend = false;
+  render();
+});
+document.querySelector('#cAlpha')!.addEventListener('click', () => {
+  coverageAlpha = true;
+  coverageBlend = false;
+  render();
+});
+document.querySelector('#cBlend')!.addEventListener('click', () => {
+  coverageAlpha = false;
+  coverageBlend = true;
+  render();
+});
+document.querySelector('#cALL')!.addEventListener('click', () => {
+  coverageAlpha = true;
+  coverageBlend = true;
+  render();
+});
 
+document.querySelector('#aaNone')!.addEventListener('change', () => {
+  fxaaEnabled = false;
+  msaaEnabled = false;
+  render();
+});
 document.querySelector('#fxaa')!.addEventListener('change', () => {
-  fxaaEnabled = document.querySelector('#fxaa')!.checked;
+  fxaaEnabled = true;
+  msaaEnabled = false;
   render();
 });
 document.querySelector('#msaa')!.addEventListener('change', () => {
-  msaaEnabled = document.querySelector('#msaa')!.checked;
+  msaaEnabled = true;
+  fxaaEnabled = false;
+  render();
+});
+document.querySelector('#aaAll')!.addEventListener('change', () => {
+  fxaaEnabled = true;
+  msaaEnabled = true;
   render();
 });
 

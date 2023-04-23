@@ -44,8 +44,10 @@ export class MSAAFrameBuffer {
 
     get texture() {
         const gl = this._gl;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.glHandle);
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.glHandle);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this._blitBuffer!.glHandle);
+        gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
         gl.blitFramebuffer(
             0,
             0,
@@ -60,6 +62,7 @@ export class MSAAFrameBuffer {
         );
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         return this._blitBuffer!.texture!;
     }
