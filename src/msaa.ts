@@ -31,6 +31,9 @@ export class MSAAFrameBuffer {
             gl.RENDERBUFFER,
             this._renderBuffer,
         );
+        gl.viewport(0, 0, this.width, this.height);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
         gl.bindRenderbuffer(gl.RENDERBUFFER, null);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 

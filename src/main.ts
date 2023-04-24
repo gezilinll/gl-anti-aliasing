@@ -35,8 +35,6 @@ let drawType = 'Circle';
 let image: HTMLImageElement | null = null;
 let fxaaEnabled = false;
 let msaaEnabled = false;
-let coverageAlpha = false;
-let coverageBlend = false;
 
 function resizeCanvas() {
   const ratio = window.devicePixelRatio;
@@ -87,30 +85,6 @@ function renderTexture(texture: WebGLTexture) {
   program.destroy();
 }
 
-function configureAlphaForCoverage() {
-  let gl = getGLContext(canvas);
-  if (coverageAlpha) {
-    gl.clearColor(1.0, 1.0, 1.0, 1.0);
-  } else {
-    gl.clearColor(1.0, 1.0, 1.0, 0.0);
-  }
-  gl.clear(gl.COLOR_BUFFER_BIT);
-}
-
-function configureBlendForCoverage() {
-  let gl = getGLContext(canvas);
-  if (coverageBlend) {
-    gl.enable(gl.BLEND);
-    // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    // gl.enable(gl.SAMPLE_COVERAGE);
-    // gl.sampleCoverage(1.0, false);
-    // gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
-
-    // gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
-
-  }
-}
 
 function render() {
   if (!image) {
@@ -122,10 +96,8 @@ function render() {
     msaaEnabled ? new MSAAFrameBuffer(canvas.width, canvas.height, gl)
       : new Framebuffer(canvas.width, canvas.height, gl);
   gl.bindFramebuffer(gl.FRAMEBUFFER, screen.glHandle);
+  gl.clearColor(0.0, 0.0, 0.0, 0.0);
 
-  configureBlendForCoverage();
-
-  configureAlphaForCoverage();
 
   const size = Math.min(canvas.width, canvas.height);
   gl.viewport((canvas.width - size) / 2, (canvas.height - size) / 2, size, size);
@@ -174,27 +146,6 @@ document.querySelector('#image')!.addEventListener('click', () => {
 });
 document.querySelector('#triangle')!.addEventListener('click', () => {
   drawType = 'Triangle';
-  render();
-});
-
-document.querySelector('#cNone')!.addEventListener('click', () => {
-  coverageAlpha = false;
-  coverageBlend = false;
-  render();
-});
-document.querySelector('#cAlpha')!.addEventListener('click', () => {
-  coverageAlpha = true;
-  coverageBlend = false;
-  render();
-});
-document.querySelector('#cBlend')!.addEventListener('click', () => {
-  coverageAlpha = false;
-  coverageBlend = true;
-  render();
-});
-document.querySelector('#cALL')!.addEventListener('click', () => {
-  coverageAlpha = true;
-  coverageBlend = true;
   render();
 });
 
