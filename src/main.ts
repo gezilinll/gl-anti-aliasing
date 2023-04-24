@@ -97,7 +97,7 @@ function render() {
       : new Framebuffer(canvas.width, canvas.height, gl);
   gl.bindFramebuffer(gl.FRAMEBUFFER, screen.glHandle);
   gl.clearColor(0.0, 0.0, 0.0, 0.0);
-
+  gl.clear(gl.COLOR_BUFFER_BIT);
 
   const size = Math.min(canvas.width, canvas.height);
   gl.viewport((canvas.width - size) / 2, (canvas.height - size) / 2, size, size);
